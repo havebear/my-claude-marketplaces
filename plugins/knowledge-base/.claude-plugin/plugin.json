@@ -1,6 +1,6 @@
 {
   "name": "knowledge-base",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "项目知识库管理插件，支持自动提醒查阅/总结、手动操作和 SubAgent 检索",
   "author": {
     "name": "mifan"

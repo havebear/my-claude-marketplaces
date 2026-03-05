@@ -1,6 +1,6 @@
 {
   "name": "my-claude-marketplaces",
-  "version": "3.4.0",
+  "version": "3.4.1",
   "description": "Claude Code 插件集合，提供项目规范管理、AI Agent 设计模式知识库、文件保护、Codex 集成和智能通知功能",
   "owner": {
     "name": "mifan"
