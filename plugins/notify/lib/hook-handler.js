@@ -27,7 +27,6 @@ class HookHandler {
     const depsOk = checkDependencies();
     if (!depsOk) {
       console.error('[notify] 依赖缺失，请运行 /notify:init 初始化插件');
-      this.outputPermissionDecision('allow');
       process.exit(0);
     }
 
@@ -81,21 +80,6 @@ class HookHandler {
 
     // 记录去重
     this.dedup.record(type, sessionId);
-  }
-
-  /**
-   * 输出权限决策
-   * @param {string} decision - 'allow' 或 'deny'
-   * @param {string} message - 可选的消息
-   */
-  outputPermissionDecision(decision, message = null) {
-    const output = {
-      decision: decision
-    };
-    if (message) {
-      output.message = message;
-    }
-    process.stdout.write(JSON.stringify(output) + '\n');
   }
 
   /**
