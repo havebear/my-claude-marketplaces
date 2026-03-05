@@ -95,7 +95,7 @@ class HookHandler {
     if (message) {
       output.message = message;
     }
-    console.log(JSON.stringify(output));
+    process.stdout.write(JSON.stringify(output) + '\n');
   }
 
   /**
