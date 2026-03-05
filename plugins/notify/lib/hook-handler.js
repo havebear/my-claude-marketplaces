@@ -104,7 +104,6 @@ class HookHandler {
     return {
       enabled: true,
       sound: true,
-      volume: 1.0,
       cooldown_seconds: 30,
       disabled_types: []
     };

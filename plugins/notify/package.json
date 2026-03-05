@@ -6,8 +6,7 @@
     "test": "node hooks/scripts/tests/run-tests.js"
   },
   "dependencies": {
-    "node-notifier": "^10.0.1",
-    "sound-play": "^1.1.0"
+    "node-notifier": "^10.0.1"
   },
   "engines": {
     "node": ">=14.0.0"

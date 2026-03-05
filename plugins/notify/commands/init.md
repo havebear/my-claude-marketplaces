@@ -26,23 +26,35 @@ cd ${CLAUDE_PLUGIN_ROOT}
 npm install
 ```
 
-## 步骤 3: 配置选项（可选）
+## 步骤 3: 配置选项
 
-使用 AskUserQuestion 询问用户是否需要自定义配置：
+依次使用 AskUserQuestion 询问用户以下配置项，每个问题将默认值作为第一个选项并标注「推荐」：
 
-- 是否启用声音？（默认：是）
-- 冷却时间？（选项：15秒/30秒/60秒，默认：30秒）
-- 是否禁用某些通知类型？（默认：全部启用）
+### 3.1 声音设置
 
-如果用户选择默认配置，跳过此步骤。
+询问：是否启用系统提示音？
+- ✅ 开启（推荐）
+- ❌ 关闭
 
-如果用户需要自定义，更新 `${CLAUDE_PLUGIN_ROOT}/config/config.json`：
+### 3.2 冷却时间
+
+询问：通知冷却时间（防止短时间内重复通知）？
+- 30秒（推荐）
+- 15秒
+- 60秒
+
+### 3.3 禁用通知类型
+
+询问：是否需要禁用某些通知类型？
+- 全部启用（推荐）
+- 自定义禁用（如选择此项，进一步列出所有类型供用户多选：task_complete / review_complete / question / plan_ready / session_limit / api_error）
+
+根据用户选择，更新 `${CLAUDE_PLUGIN_ROOT}/config/config.json`：
 
 ```json
 {
   "enabled": true,
   "sound": true,
-  "volume": 1.0,
   "cooldown_seconds": 30,
   "disabled_types": []
 }
@@ -78,7 +90,7 @@ node ${CLAUDE_PLUGIN_ROOT}/lib/check-dependencies.js
 💡 提示：
   - 通知会在关键事件发生时自动触发
   - 默认启用 30 秒冷却时间，防止重复通知
-  - 声音文件和图标已内置，无需下载
+  - 声音使用系统提示音，无需额外文件
   - 如需自定义配置，可编辑 config/config.json
 
 📝 可选：测试通知功能

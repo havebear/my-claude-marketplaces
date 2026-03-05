@@ -1,11 +1,11 @@
 const notifier = require('node-notifier');
-const fs = require('fs');
 const path = require('path');
+const fs = require('fs');
 
 class NotificationSender {
   constructor(config, pluginRoot) {
     this.pluginRoot = pluginRoot || process.env.CLAUDE_PLUGIN_ROOT;
-    this.config = config || { enabled: true, sound: true, volume: 1.0, cooldown_seconds: 30, disabled_types: [] };
+    this.config = config || { enabled: true, sound: true, cooldown_seconds: 30, disabled_types: [] };
   }
 
   /**
@@ -15,33 +15,27 @@ class NotificationSender {
     const defaults = {
       task_complete: {
         title: '✅ 任务完成',
-        message: 'Claude 已完成任务',
-        sound: path.join(this.pluginRoot, 'sounds', 'task-complete.mp3')
+        message: 'Claude 已完成任务'
       },
       review_complete: {
         title: '🔍 审查完成',
-        message: 'Claude 已完成代码审查',
-        sound: path.join(this.pluginRoot, 'sounds', 'review-complete.mp3')
+        message: 'Claude 已完成代码审查'
       },
       question: {
         title: '❓ Claude 有问题',
-        message: 'Claude 需要你的回答',
-        sound: path.join(this.pluginRoot, 'sounds', 'question.mp3')
+        message: 'Claude 需要你的回答'
       },
       plan_ready: {
         title: '📋 计划就绪',
-        message: 'Claude 已准备好实施计划',
-        sound: path.join(this.pluginRoot, 'sounds', 'plan-ready.mp3')
+        message: 'Claude 已准备好实施计划'
       },
       session_limit: {
         title: '⏱️ 会话限制',
-        message: '会话已达到限制',
-        sound: path.join(this.pluginRoot, 'sounds', 'alert.mp3')
+        message: '会话已达到限制'
       },
       api_error: {
         title: '🔴 API 错误',
-        message: '需要重新登录',
-        sound: path.join(this.pluginRoot, 'sounds', 'error.mp3')
+        message: '需要重新登录'
       }
     };
 
@@ -65,14 +59,9 @@ class NotificationSender {
       return;
     }
 
-    // 发送桌面通知
+    // 发送桌面通知（声音由 node-notifier 处理）
     const message = customMessage || defaults.message;
     await this.sendDesktopNotification(defaults.title, message);
-
-    // 播放声音
-    if (this.config.sound && defaults.sound) {
-      await this.playSound(defaults.sound);
-    }
   }
 
   async sendDesktopNotification(title, message) {
@@ -80,7 +69,7 @@ class NotificationSender {
       const options = {
         title: title,
         message: message,
-        sound: false, // 我们单独处理声音
+        sound: this.config.sound,
         wait: false
       };
 
@@ -99,22 +88,6 @@ class NotificationSender {
         }
       });
     });
-  }
-
-  async playSound(soundPath) {
-    if (!fs.existsSync(soundPath)) {
-      console.error('Sound file not found:', soundPath);
-      return;
-    }
-
-    try {
-      const soundPlay = require('sound-play');
-      const volume = Math.min(1, Math.max(0, this.config.volume != null ? this.config.volume : 1));
-      const absolutePath = path.resolve(soundPath);
-      await soundPlay.play(absolutePath, volume);
-    } catch (err) {
-      console.error('Sound playback error:', err.message);
-    }
   }
 }
 

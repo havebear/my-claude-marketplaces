@@ -59,7 +59,6 @@ node test-notification.js
 {
   "enabled": true,
   "sound": true,
-  "volume": 1.0,
   "cooldown_seconds": 30,
   "disabled_types": []
 }
@@ -68,8 +67,7 @@ node test-notification.js
 ### 配置选项
 
 - `enabled` - 是否启用通知（默认：true）
-- `sound` - 是否播放声音（默认：true）
-- `volume` - 音量大小 0.0-1.0（默认：1.0）
+- `sound` - 是否播放系统提示音（默认：true）
 - `cooldown_seconds` - 冷却时间，防止重复通知（默认：30秒）
 - `disabled_types` - 禁用的通知类型数组（默认：[]）
 
