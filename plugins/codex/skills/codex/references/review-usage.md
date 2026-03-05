@@ -5,8 +5,10 @@
 代码审查统一通过 `codex exec -o` 实现，将 review 指令作为 prompt 传入，结果写入文件后读取。
 
 ```bash
-codex exec -o review.txt "<review prompt>" --full-auto &> /dev/null
-cat review.txt
+mkdir -p tmp
+REVIEW="tmp/codex-review-$RANDOM.txt"
+codex exec -o "$REVIEW" "<review prompt>" --full-auto &> /dev/null
+cat "$REVIEW"
 ```
 
 ## 审查模式
@@ -16,8 +18,10 @@ cat review.txt
 审查当前工作区中已修改但未提交的代码。
 
 ```bash
-codex exec -o review.txt "Review the uncommitted changes in this repository. Run git diff and git diff --cached to see all changes. Provide a code review covering: code quality, potential bugs, security issues, and improvement suggestions." --full-auto &> /dev/null
-cat review.txt
+mkdir -p tmp
+REVIEW="tmp/codex-review-$RANDOM.txt"
+codex exec -o "$REVIEW" "Review the uncommitted changes in this repository. Run git diff and git diff --cached to see all changes. Provide a code review covering: code quality, potential bugs, security issues, and improvement suggestions." --full-auto &> /dev/null
+cat "$REVIEW"
 ```
 
 适用场景：
@@ -30,17 +34,25 @@ cat review.txt
 审查某个具体 commit 引入的变更。
 
 ```bash
-codex exec -o review.txt "Review commit <sha>. Run git show <sha> to see the changes. Provide a code review covering: code quality, potential bugs, security issues, and improvement suggestions." --full-auto &> /dev/null
-cat review.txt
+mkdir -p tmp
+REVIEW="tmp/codex-review-$RANDOM.txt"
+codex exec -o "$REVIEW" "Review commit <sha>. Run git show <sha> to see the changes. Provide a code review covering: code quality, potential bugs, security issues, and improvement suggestions." --full-auto &> /dev/null
+cat "$REVIEW"
 ```
 
 示例：
 ```bash
-codex exec -o review.txt "Review commit a1b2c3d. Run git show a1b2c3d to see the changes. Provide a code review." --full-auto &> /dev/null
-cat review.txt
+mkdir -p tmp
+REVIEW="tmp/codex-review-$RANDOM.txt"
+codex exec -o "$REVIEW" "Review commit a1b2c3d. Run git show a1b2c3d to see the changes. Provide a code review." --full-auto &> /dev/null
+cat "$REVIEW"
+```
 
-codex exec -o review.txt "Review commit HEAD. Run git show HEAD to see the changes. Provide a code review." --full-auto &> /dev/null
-cat review.txt
+```bash
+mkdir -p tmp
+REVIEW="tmp/codex-review-$RANDOM.txt"
+codex exec -o "$REVIEW" "Review commit HEAD. Run git show HEAD to see the changes. Provide a code review." --full-auto &> /dev/null
+cat "$REVIEW"
 ```
 
 适用场景：
@@ -53,17 +65,25 @@ cat review.txt
 对比当前分支与基础分支之间的所有变更。
 
 ```bash
-codex exec -o review.txt "Review all changes between the current branch and <base-branch>. Run git diff <base-branch>...HEAD to see the diff. Provide a code review covering: code quality, potential bugs, security issues, and improvement suggestions." --full-auto &> /dev/null
-cat review.txt
+mkdir -p tmp
+REVIEW="tmp/codex-review-$RANDOM.txt"
+codex exec -o "$REVIEW" "Review all changes between the current branch and <base-branch>. Run git diff <base-branch>...HEAD to see the diff. Provide a code review covering: code quality, potential bugs, security issues, and improvement suggestions." --full-auto &> /dev/null
+cat "$REVIEW"
 ```
 
 示例：
 ```bash
-codex exec -o review.txt "Review all changes between the current branch and main. Run git diff main...HEAD to see the diff. Provide a code review." --full-auto &> /dev/null
-cat review.txt
+mkdir -p tmp
+REVIEW="tmp/codex-review-$RANDOM.txt"
+codex exec -o "$REVIEW" "Review all changes between the current branch and main. Run git diff main...HEAD to see the diff. Provide a code review." --full-auto &> /dev/null
+cat "$REVIEW"
+```
 
-codex exec -o review.txt "Review all changes between the current branch and develop. Run git diff develop...HEAD to see the diff. Provide a code review." --full-auto &> /dev/null
-cat review.txt
+```bash
+mkdir -p tmp
+REVIEW="tmp/codex-review-$RANDOM.txt"
+codex exec -o "$REVIEW" "Review all changes between the current branch and develop. Run git diff develop...HEAD to see the diff. Provide a code review." --full-auto &> /dev/null
+cat "$REVIEW"
 ```
 
 适用场景：
@@ -90,18 +110,24 @@ Codex 的 review 通常会输出：
 git branch
 
 # 2. 审查与 main 的差异
-codex exec -o review.txt "Review all changes between the current branch and main. Run git diff main...HEAD to see the diff. Provide a code review." --full-auto &> /dev/null
-cat review.txt
+mkdir -p tmp
+REVIEW="tmp/codex-review-$RANDOM.txt"
+codex exec -o "$REVIEW" "Review all changes between the current branch and main. Run git diff main...HEAD to see the diff. Provide a code review." --full-auto &> /dev/null
+cat "$REVIEW"
 
 # 3. 如果有未提交的改动，也一并审查
-codex exec -o review.txt "Review the uncommitted changes in this repository. Run git diff and git diff --cached to see all changes. Provide a code review." --full-auto &> /dev/null
-cat review.txt
+mkdir -p tmp
+REVIEW="tmp/codex-review-$RANDOM.txt"
+codex exec -o "$REVIEW" "Review the uncommitted changes in this repository. Run git diff and git diff --cached to see all changes. Provide a code review." --full-auto &> /dev/null
+cat "$REVIEW"
 ```
 
 ### 提交后快速检查
 
 ```bash
 git commit -m "feat: add login"
-codex exec -o review.txt "Review commit HEAD. Run git show HEAD to see the changes. Provide a code review." --full-auto &> /dev/null
-cat review.txt
+mkdir -p tmp
+REVIEW="tmp/codex-review-$RANDOM.txt"
+codex exec -o "$REVIEW" "Review commit HEAD. Run git show HEAD to see the changes. Provide a code review." --full-auto &> /dev/null
+cat "$REVIEW"
 ```

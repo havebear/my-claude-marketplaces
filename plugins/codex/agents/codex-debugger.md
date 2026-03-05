@@ -63,9 +63,10 @@ tools: ["Bash", "Read", "Glob"]
    - prompt 应包含：问题描述、代码片段、期望行为、实际行为
 
 3. **调用 Codex CLI**
-   - 使用 `codex exec -o result.txt "<prompt>" --full-auto &> /dev/null` 执行分析
-   - `-o result.txt` 将最终结果写入文件，避免中间过程污染主 Agent 上下文
-   - 使用 `cat result.txt` 读取分析结果
+   - 先创建临时目录和随机文件名：`mkdir -p tmp && RESULT="tmp/codex-result-$RANDOM.txt"`
+   - 使用 `codex exec -o "$RESULT" "<prompt>" --full-auto &> /dev/null` 执行分析
+   - `-o "$RESULT"` 将最终结果写入 tmp 目录文件，避免中间过程污染主 Agent 上下文和项目目录
+   - 使用 `cat "$RESULT"` 读取分析结果
 
 4. **展示结果**
    - 清晰展示 Codex 的分析结论
@@ -76,7 +77,9 @@ tools: ["Bash", "Read", "Glob"]
 ## 调用示例
 
 ```bash
-codex exec -o result.txt "以下代码报错 TypeError: Cannot read property 'map' of undefined。
+mkdir -p tmp
+RESULT="tmp/codex-result-$RANDOM.txt"
+codex exec -o "$RESULT" "以下代码报错 TypeError: Cannot read property 'map' of undefined。
 代码：
 \`\`\`javascript
 function renderList(items) {
@@ -85,7 +88,7 @@ function renderList(items) {
 renderList(null);
 \`\`\`
 请分析原因并提供修复方案。" --full-auto &> /dev/null
-cat result.txt
+cat "$RESULT"
 ```
 
 ## 注意事项

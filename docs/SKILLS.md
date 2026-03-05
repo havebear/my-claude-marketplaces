@@ -11,13 +11,13 @@
 
 | 技能 | 所属插件 | 说明 | 触发方式 |
 |------|---------|------|---------|
-| `interactive-planning` | project-spec | 系统化规划流程 | 自然语言触发 |
+| `planning` | project-spec | 系统化规划流程 | 自然语言触发 |
 | `codex` | codex | Codex CLI 使用指导 | 自然语言触发 |
 | `knowledge-management` | knowledge-base | 知识管理最佳实践 | 自然语言触发 |
 
-## project-spec: interactive-planning
+## project-spec: planning
 
-**文件位置**：`plugins/project-spec/skills/interactive-planning/SKILL.md`
+**文件位置**：`plugins/project-spec/skills/planning/SKILL.md`
 
 **功能**：
 - 作为 Plan Mode 的超集，提供结构化的 5 阶段规划流程

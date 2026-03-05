@@ -367,8 +367,10 @@ which codex 2>/dev/null && echo "codex available"
 如过已经安装 codex，那么**必须使用 codex** 进行代码 review
 
 ```bash
-codex exec -o review.txt "[PROMPT]" --full-auto &> /dev/null
-cat review.txt
+mkdir -p tmp
+REVIEW="tmp/codex-review-$RANDOM.txt"
+codex exec -o "$REVIEW" "[PROMPT]" --full-auto &> /dev/null
+cat "$REVIEW"
 ```
 
 未安装 codex，使用独立 subAgent

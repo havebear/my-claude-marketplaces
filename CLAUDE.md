@@ -87,9 +87,9 @@ my-claude-marketplaces/
 ├── .claude-plugin/
 │   └── marketplace.json          # Marketplace 配置
 ├── plugins/
-│   ├── project-spec/             # 项目规范管理插件 (v1.7.7)
+│   ├── project-spec/             # 项目规范管理插件 (v1.7.8)
 │   ├── file-guard/               # 文件保护插件 (v1.1.0)
-│   ├── codex/                    # Codex CLI 集成插件 (v1.0.1)
+│   ├── codex/                    # Codex CLI 集成插件 (v1.0.2)
 │   ├── knowledge-base/           # 知识库管理插件 (v0.1.3)
 │   └── claude-notifications/     # 智能通知插件 (v0.2.4)
 ├── docs/                         # 共享文档
@@ -100,18 +100,18 @@ my-claude-marketplaces/
 
 ## 插件功能说明
 
-### project-spec（项目规范管理）v1.7.7
+### project-spec（项目规范管理）v1.7.8
 
 - `/ps-init`：初始化项目文档结构
 - `/ps-plan`：交互式计划制定
 - `/ps-exec`：执行计划，支持 subAgent 协调
-- `interactive-planning` Skill：自然语言触发的系统化规划
+- `planning` Skill：自然语言触发的系统化规划
 
 ### file-guard（文件保护）v1.1.0
 
 - PreToolUse Hook：拦截 Edit 和 Bash rm 操作，防止修改项目外文件
 
-### codex（Codex CLI 集成）v1.0.1
+### codex（Codex CLI 集成）v1.0.2
 
 - `/cxreview`：手动触发代码审查
 - `codex` Skill：Codex CLI 使用指导
@@ -136,7 +136,7 @@ my-claude-marketplaces/
 - JSON 配置使用 2 空格缩进
 - Markdown 文档使用中文编写
 - 语义化版本号管理
-- 更新版本号时同步更新 `plugin.json` 和 `marketplace.json`
+- **每次 commit 代码变更时，必须更新对应插件的版本号**，同步更新 `plugin.json` 和 `marketplace.json`
 
 ## 📚 详细文档索引
 

@@ -21,31 +21,37 @@ codex exec "<prompt>" [options]
 ### Debug 代码错误
 
 ```bash
-codex exec -o result.txt "以下代码报错 TypeError: xxx。
+mkdir -p tmp
+RESULT="tmp/codex-result-$RANDOM.txt"
+codex exec -o "$RESULT" "以下代码报错 TypeError: xxx。
 代码：
 \`\`\`javascript
 // 粘贴相关代码
 \`\`\`
 请分析原因并提供修复方案。" --full-auto &> /dev/null
-cat result.txt
+cat "$RESULT"
 ```
 
 ### 分析代码逻辑
 
 ```bash
-codex exec -o result.txt "分析这段代码的时间复杂度，并建议优化方案：
+mkdir -p tmp
+RESULT="tmp/codex-result-$RANDOM.txt"
+codex exec -o "$RESULT" "分析这段代码的时间复杂度，并建议优化方案：
 \`\`\`python
 # 粘贴代码
 \`\`\`" --full-auto &> /dev/null
-cat result.txt
+cat "$RESULT"
 ```
 
 ### 解释错误信息
 
 ```bash
-codex exec -o result.txt "解释这个错误信息的含义和解决方法：
+mkdir -p tmp
+RESULT="tmp/codex-result-$RANDOM.txt"
+codex exec -o "$RESULT" "解释这个错误信息的含义和解决方法：
 ECONNREFUSED 127.0.0.1:5432" --full-auto &> /dev/null
-cat result.txt
+cat "$RESULT"
 ```
 
 ## Prompt 编写技巧

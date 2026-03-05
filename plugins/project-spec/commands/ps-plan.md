@@ -24,7 +24,7 @@ argument-hint: 可选 Plan 说明
 
 ## 执行流程
 
-当你运行此命令时，将自动调用 project-spec:interactive-planning skill，该 skill 会：
+当你运行此命令时，将自动调用 project-spec:planning skill，该 skill 会：
 
 1. **第1轮：需求全貌挖掘**
     - 使用5层次框架深度澄清需求（Why/What/How/Constraints/EdgeCases）
@@ -60,12 +60,12 @@ argument-hint: 可选 Plan 说明
 
 ## 执行指令
 
-**重要：** 当此命令被调用时，必须立即使用 Skill tool 调用 `interactive-planning` skill。
+**重要：** 当此命令被调用时，必须立即使用 Skill tool 调用 `planning` skill。
 
 使用以下方式调用：
 ```
 Skill tool:
-- skill: "interactive-planning"
+- skill: "planning"
 - args: [用户提供的功能描述，如果有的话]
 ```
 

@@ -23,7 +23,7 @@ my-claude-marketplaces/
 │   │   │   ├── ps-plan.md                  # /ps-plan 命令
 │   │   │   └── ps-exec.md                  # /ps-exec 命令
 │   │   ├── skills/
-│   │   │   └── interactive-planning/       # Interactive Planning Skill
+│   │   │   └── planning/                   # Planning Skill
 │   │   │       ├── SKILL.md
 │   │   │       ├── examples/
 │   │   │       └── references/

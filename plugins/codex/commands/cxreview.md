@@ -26,23 +26,29 @@ allowed-tools: ["Bash", "AskUserQuestion"]
 
 **模式 1：未提交变更**
 ```bash
-codex exec -o review.txt "Review the uncommitted changes in this repository. Run git diff and git diff --cached to see all changes. Provide a code review covering: code quality, potential bugs, security issues, and improvement suggestions." --full-auto &> /dev/null
+mkdir -p tmp
+REVIEW="tmp/codex-review-$RANDOM.txt"
+codex exec -o "$REVIEW" "Review the uncommitted changes in this repository. Run git diff and git diff --cached to see all changes. Provide a code review covering: code quality, potential bugs, security issues, and improvement suggestions." --full-auto &> /dev/null
 ```
 
 **模式 2：特定 commit**
 ```bash
-codex exec -o review.txt "Review commit <sha>. Run git show <sha> to see the changes. Provide a code review covering: code quality, potential bugs, security issues, and improvement suggestions." --full-auto &> /dev/null
+mkdir -p tmp
+REVIEW="tmp/codex-review-$RANDOM.txt"
+codex exec -o "$REVIEW" "Review commit <sha>. Run git show <sha> to see the changes. Provide a code review covering: code quality, potential bugs, security issues, and improvement suggestions." --full-auto &> /dev/null
 ```
 
 **模式 3：分支对比**
 ```bash
-codex exec -o review.txt "Review all changes between the current branch and <base-branch>. Run git diff <base-branch>...HEAD to see the diff. Provide a code review covering: code quality, potential bugs, security issues, and improvement suggestions." --full-auto &> /dev/null
+mkdir -p tmp
+REVIEW="tmp/codex-review-$RANDOM.txt"
+codex exec -o "$REVIEW" "Review all changes between the current branch and <base-branch>. Run git diff <base-branch>...HEAD to see the diff. Provide a code review covering: code quality, potential bugs, security issues, and improvement suggestions." --full-auto &> /dev/null
 ```
 
 ### Step 3: 读取并展示审查结果
 
 ```bash
-cat review.txt
+cat "$REVIEW"
 ```
 
 将审查结果完整展示给用户，包括：
