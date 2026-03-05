@@ -4,7 +4,7 @@ const os = require('os');
 
 class DedupManager {
   constructor(cooldownSeconds = 30) {
-    this.stateDir = path.join(os.tmpdir(), 'claude-notifications');
+    this.stateDir = path.join(os.tmpdir(), 'notify');
     this.stateFile = path.join(this.stateDir, 'dedup-state.json');
     this.cooldownSeconds = cooldownSeconds;
 

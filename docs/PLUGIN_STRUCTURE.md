@@ -80,11 +80,11 @@ my-claude-marketplaces/
 │   │   │   └── hooks.json                  # Hook 配置
 │   │   └── README.md
 │   │
-│   └── claude-notifications/               # 智能通知插件
+│   └── notify/                             # 智能通知插件
 │       ├── .claude-plugin/
 │       │   └── plugin.json
 │       ├── commands/
-│       │   └── init.md                     # /claude-notifications:init 命令
+│       │   └── init.md                     # /notify:init 命令
 │       ├── lib/
 │       │   └── state-analyzer.js           # 状态分析器
 │       ├── package.json                    # Node.js 依赖
@@ -127,7 +127,7 @@ Marketplace 通过 `.claude-plugin/marketplace.json` 管理所有插件的注册
 | `file-guard` | v1.1.0 | 文件保护：拦截对项目外文件的修改和删除 | Hooks (JS scripts) |
 | `codex` | v1.0.1 | Codex CLI 集成：代码 debug 和 review | Commands, Skills, Agents |
 | `knowledge-base` | v0.1.3 | 知识库管理：跨会话知识记忆和检索 | Commands, Skills, Agents, Hooks |
-| `claude-notifications` | v0.2.4 | 智能通知：桌面通知和声音提醒 | Commands, JS lib |
+| `notify` | v0.3.0 | 智能通知：桌面通知和声音提醒 | Commands, JS lib |
 
 ## 插件组件标准目录
 

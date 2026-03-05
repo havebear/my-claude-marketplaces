@@ -32,11 +32,11 @@
 
 ```bash
 # 在源码目录测试
-cd plugins/claude-notifications
+cd plugins/notify
 node test-notification.js
 
 # 或在安装目录测试（需要先复制测试文件）
-cd C:\Users\<your-username>\.claude\plugins\cache\my-claude-marketplaces\claude-notifications\0.2.0
+cd C:\Users\<your-username>\.claude\plugins\cache\my-claude-marketplaces\notify\0.2.0
 node test-notification.js
 ```
 
@@ -139,7 +139,7 @@ node test-notification.js plan_ready
 如果看到"依赖未安装"错误，运行：
 
 ```bash
-cd plugins/claude-notifications
+cd plugins/notify
 npm install
 ```
 

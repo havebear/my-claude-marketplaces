@@ -18,7 +18,7 @@
 | `/kb-add` | knowledge-base | 添加知识条目到知识库 |
 | `/kb-search` | knowledge-base | 搜索知识库条目 |
 | `/kb-index` | knowledge-base | 重建知识库索引 |
-| `/claude-notifications:init` | claude-notifications | 初始化通知配置 |
+| `/notify:init` | notify | 初始化通知配置 |
 
 ## project-spec 命令
 
@@ -122,17 +122,17 @@
 /kb-index
 ```
 
-## claude-notifications 命令
+## notify 命令
 
-### `/claude-notifications:init` — 初始化通知
+### `/notify:init` — 初始化通知
 
-**文件位置**：`plugins/claude-notifications/commands/init.md`
+**文件位置**：`plugins/notify/commands/init.md`
 
 **功能**：初始化或重新配置通知系统
 
 **使用方法**：
 ```
-/claude-notifications:init
+/notify:init
 ```
 
 ## 命令开发规范
@@ -167,7 +167,7 @@
 
 - 文件名使用 kebab-case（如 `my-command.md`）
 - 文件名与命令名对应（`/my-command` → `my-command.md`）
-- 跨插件命令使用 `插件名:命令名` 格式（如 `/claude-notifications:init`）
+- 跨插件命令使用 `插件名:命令名` 格式（如 `/notify:init`）
 
 ### 注册命令
 

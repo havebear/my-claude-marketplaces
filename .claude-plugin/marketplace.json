@@ -17,8 +17,8 @@
       "description": "文件保护插件：防止意外修改和删除项目外文件，智能拦截 Edit 和 Bash rm 操作"
     },
     {
-      "name": "claude-notifications",
-      "source": "./plugins/claude-notifications",
+      "name": "notify",
+      "source": "./plugins/notify",
       "description": "智能通知系统：在关键事件发生时发送桌面通知，支持任务完成、代码审查、问题提示等 6 种通知类型"
     },
     {
