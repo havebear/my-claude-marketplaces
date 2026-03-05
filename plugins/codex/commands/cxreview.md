@@ -26,22 +26,26 @@ allowed-tools: ["Bash", "AskUserQuestion"]
 
 **模式 1：未提交变更**
 ```bash
-codex review --uncommitted
+codex exec -o review.txt "Review the uncommitted changes in this repository. Run git diff and git diff --cached to see all changes. Provide a code review covering: code quality, potential bugs, security issues, and improvement suggestions." --full-auto &> /dev/null
 ```
 
 **模式 2：特定 commit**
 ```bash
-codex review --commit <sha>
+codex exec -o review.txt "Review commit <sha>. Run git show <sha> to see the changes. Provide a code review covering: code quality, potential bugs, security issues, and improvement suggestions." --full-auto &> /dev/null
 ```
 
 **模式 3：分支对比**
 ```bash
-codex review --base <base-branch>
+codex exec -o review.txt "Review all changes between the current branch and <base-branch>. Run git diff <base-branch>...HEAD to see the diff. Provide a code review covering: code quality, potential bugs, security issues, and improvement suggestions." --full-auto &> /dev/null
 ```
 
-### Step 3: 展示审查结果
+### Step 3: 读取并展示审查结果
 
-将 Codex 的审查结果完整展示给用户，包括：
+```bash
+cat review.txt
+```
+
+将审查结果完整展示给用户，包括：
 - 代码质量问题
 - 潜在 bug
 - 安全风险
@@ -51,16 +55,16 @@ codex review --base <base-branch>
 
 当用户提供参数时，直接解析并执行：
 
-- `/codex:review uncommitted` → `codex review --uncommitted`
-- `/codex:review commit abc123` → `codex review --commit abc123`
-- `/codex:review branch feature/my-feature` → `codex review --base main`（询问 base branch）
-- `/codex:review branch feature/my-feature --base develop` → `codex review --base develop`
+- `/codex:cxreview uncommitted` → 执行模式 1（未提交变更审查）
+- `/codex:cxreview commit abc123` → 执行模式 2，将 `<sha>` 替换为 `abc123`
+- `/codex:cxreview branch feature/my-feature` → 执行模式 3（询问 base branch）
+- `/codex:cxreview branch feature/my-feature --base develop` → 执行模式 3，将 `<base-branch>` 替换为 `develop`
 
 ## 使用示例
 
 ```
-/codex:review
-/codex:review uncommitted
-/codex:review commit a1b2c3d
-/codex:review branch feature/login --base main
+/codex:cxreview
+/codex:cxreview uncommitted
+/codex:cxreview commit a1b2c3d
+/codex:cxreview branch feature/login --base main
 ```

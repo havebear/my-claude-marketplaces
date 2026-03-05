@@ -20,22 +20,31 @@ Codex CLI 是 OpenAI 提供的命令行工具，可以在终端中直接调用 A
 
 ### codex exec - 执行任务
 
-非交互式执行任意任务，适合 debug 和代码分析。
+非交互式执行任意任务，适合 debug、代码分析和代码审查。
 
 ```bash
-codex exec "<prompt>" --full-auto
+codex exec -o result.txt "<prompt>" --full-auto &> /dev/null
+cat result.txt
 ```
 
 详细用法 → `references/exec-usage.md`
 
-### codex review - 代码审查
+### 代码审查（通过 codex exec 实现）
 
-非交互式代码审查，支持三种模式。
+代码审查统一通过 `codex exec -o` 配合 review prompt 实现，灵活支持各种审查场景。
 
 ```bash
-codex review --uncommitted          # 审查未提交变更
-codex review --commit <sha>         # 审查特定 commit
-codex review --base <branch>        # 对比基础分支
+# 审查未提交变更
+codex exec -o review.txt "Review the uncommitted changes in this repository. Run git diff and git diff --cached to see all changes. Provide a code review covering: code quality, potential bugs, security issues, and improvement suggestions." --full-auto &> /dev/null
+cat review.txt
+
+# 审查特定 commit
+codex exec -o review.txt "Review commit <sha>. Run git show <sha> to see the changes. Provide a code review." --full-auto &> /dev/null
+cat review.txt
+
+# 分支对比审查
+codex exec -o review.txt "Review all changes between the current branch and <base-branch>. Run git diff <base-branch>...HEAD to see the diff. Provide a code review." --full-auto &> /dev/null
+cat review.txt
 ```
 
 详细用法 → `references/review-usage.md`
@@ -48,11 +57,11 @@ codex review --base <branch>        # 对比基础分支
 | 审查当前改动 | `/codex:review uncommitted` |
 | 审查某个 commit | `/codex:review commit <sha>` |
 | PR 前代码审查 | `/codex:review branch <feature> --base main` |
-| 自定义分析任务 | `codex exec "<描述任务>" --full-auto` |
+| 自定义分析任务 | `codex exec -o result.txt "<描述任务>" --full-auto &> /dev/null` |
 
 ## 日志与调试
 
-Codex CLI 提供完整的日志和会话管理功能，即使使用 `--final-only` 过滤输出，完整的执行过程仍会被保存。
+Codex CLI 提供完整的日志和会话管理功能。使用 `-o` 将结果写入文件后，完整的执行过程仍会被保存在会话中。
 
 详细说明 → `references/logging-debug.md`
 
@@ -66,12 +75,12 @@ tail -F ~/.codex/log/codex-tui.log
 codex resume --last
 
 # 启用详细日志
-RUST_LOG=debug codex exec "<prompt>" --full-auto --final-only
+RUST_LOG=debug codex exec -o result.txt "<prompt>" --full-auto &> /dev/null
 ```
 
 ## 最佳实践
 
 1. **debug 时提供完整上下文**：错误信息 + 相关代码 + 期望行为
-2. **review 前确保代码已保存**：`--uncommitted` 只审查已保存但未提交的变更
+2. **review 前确保代码已保存**：审查未提交变更时只检查已保存但未提交的文件
 3. **分支 review 指定正确的 base**：避免审查范围过大
-4. **使用 --final-only 减少输出噪音**：在自动化场景中推荐使用，出问题时可通过日志或 resume 查看详情
+4. **使用 `-o` 保持输出简洁**：将结果写入文件，避免中间过程污染上下文；出问题时可通过日志或 resume 查看详情

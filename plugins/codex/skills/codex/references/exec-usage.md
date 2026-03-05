@@ -11,37 +11,41 @@ codex exec "<prompt>" [options]
 | 选项 | 说明 |
 |------|------|
 | `--full-auto` | 全自动模式，无需确认直接执行 |
-| `--final-only` | 只输出最终结果，过滤中间过程（推荐与 --full-auto 配合使用） |
+| `-o <file>` / `--output-last-message <file>` | 将最终结果写入指定文件（推荐用于自动化场景） |
 | `--model <model>` | 指定使用的模型（默认 o4-mini） |
-| `--quiet` | 减少输出，只显示最终结果 |
+
+> **说明**：`codex exec` 默认将进度信息输出到 stderr，最终消息输出到 stdout。使用 `-o` 可以将最终消息直接写入文件，配合 `&> /dev/null` 可以完全静默执行。
 
 ## 使用场景
 
 ### Debug 代码错误
 
 ```bash
-codex exec "以下代码报错 TypeError: xxx。
+codex exec -o result.txt "以下代码报错 TypeError: xxx。
 代码：
 \`\`\`javascript
 // 粘贴相关代码
 \`\`\`
-请分析原因并提供修复方案。" --full-auto --final-only
+请分析原因并提供修复方案。" --full-auto &> /dev/null
+cat result.txt
 ```
 
 ### 分析代码逻辑
 
 ```bash
-codex exec "分析这段代码的时间复杂度，并建议优化方案：
+codex exec -o result.txt "分析这段代码的时间复杂度，并建议优化方案：
 \`\`\`python
 # 粘贴代码
-\`\`\`" --full-auto --final-only
+\`\`\`" --full-auto &> /dev/null
+cat result.txt
 ```
 
 ### 解释错误信息
 
 ```bash
-codex exec "解释这个错误信息的含义和解决方法：
-ECONNREFUSED 127.0.0.1:5432" --full-auto --final-only
+codex exec -o result.txt "解释这个错误信息的含义和解决方法：
+ECONNREFUSED 127.0.0.1:5432" --full-auto &> /dev/null
+cat result.txt
 ```
 
 ## Prompt 编写技巧

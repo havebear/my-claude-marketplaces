@@ -364,12 +364,11 @@ which codex 2>/dev/null && echo "codex available"
 
 #### 6.2 启动独立 Review
 
-如过已经安装 codex，那么**必须使用 codex** 进行代码 reivew
+如过已经安装 codex，那么**必须使用 codex** 进行代码 review
 
 ```bash
-codex review  --uncommitted [PROMPT] #  Review staged, unstaged, and untracked changes
-
-codex review  --base <BRANCH> [PROMPT] #  Review changes against the given base branch
+codex exec -o review.txt "[PROMPT]" --full-auto &> /dev/null
+cat review.txt
 ```
 
 未安装 codex，使用独立 subAgent
@@ -382,7 +381,7 @@ Task tool:
 - prompt: [PROMPT]
 ```
 
-Review 提示词示例：
+Review 提示词(PROMPT)示例：
 ```markdown
 你是一个独立的代码审查员，请对以下任务的实现进行 review。
 
@@ -395,9 +394,9 @@ Review 提示词示例：
     了解实际执行情况（✅/❌ 统计）
 
     **步骤3：查看代码变更**
-    在目录 <worktree绝对路径> 中运行：
-    git diff <base_branch>...HEAD --stat
-    git diff <base_branch>...HEAD
+    在目录 <worktree绝对路径> 中使用 git 命令查看变更内容：
+    git status
+    git diff HEAD
 
     **步骤4：评估以下维度**
     a. 计划完整性：计划中的所有任务是否都已实现？有无遗漏？

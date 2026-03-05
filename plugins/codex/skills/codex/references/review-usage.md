@@ -1,9 +1,12 @@
-# codex review 详细用法
+# 代码审查用法（通过 codex exec -o 实现）
 
-## 命令格式
+## 核心模式
+
+代码审查统一通过 `codex exec -o` 实现，将 review 指令作为 prompt 传入，结果写入文件后读取。
 
 ```bash
-codex review [options]
+codex exec -o review.txt "<review prompt>" --full-auto &> /dev/null
+cat review.txt
 ```
 
 ## 审查模式
@@ -13,7 +16,8 @@ codex review [options]
 审查当前工作区中已修改但未提交的代码。
 
 ```bash
-codex review --uncommitted
+codex exec -o review.txt "Review the uncommitted changes in this repository. Run git diff and git diff --cached to see all changes. Provide a code review covering: code quality, potential bugs, security issues, and improvement suggestions." --full-auto &> /dev/null
+cat review.txt
 ```
 
 适用场景：
@@ -26,14 +30,17 @@ codex review --uncommitted
 审查某个具体 commit 引入的变更。
 
 ```bash
-codex review --commit <sha>
+codex exec -o review.txt "Review commit <sha>. Run git show <sha> to see the changes. Provide a code review covering: code quality, potential bugs, security issues, and improvement suggestions." --full-auto &> /dev/null
+cat review.txt
 ```
 
 示例：
 ```bash
-codex review --commit a1b2c3d
-codex review --commit HEAD
-codex review --commit HEAD~1
+codex exec -o review.txt "Review commit a1b2c3d. Run git show a1b2c3d to see the changes. Provide a code review." --full-auto &> /dev/null
+cat review.txt
+
+codex exec -o review.txt "Review commit HEAD. Run git show HEAD to see the changes. Provide a code review." --full-auto &> /dev/null
+cat review.txt
 ```
 
 适用场景：
@@ -46,14 +53,17 @@ codex review --commit HEAD~1
 对比当前分支与基础分支之间的所有变更。
 
 ```bash
-codex review --base <base-branch>
+codex exec -o review.txt "Review all changes between the current branch and <base-branch>. Run git diff <base-branch>...HEAD to see the diff. Provide a code review covering: code quality, potential bugs, security issues, and improvement suggestions." --full-auto &> /dev/null
+cat review.txt
 ```
 
 示例：
 ```bash
-codex review --base main
-codex review --base develop
-codex review --base origin/main
+codex exec -o review.txt "Review all changes between the current branch and main. Run git diff main...HEAD to see the diff. Provide a code review." --full-auto &> /dev/null
+cat review.txt
+
+codex exec -o review.txt "Review all changes between the current branch and develop. Run git diff develop...HEAD to see the diff. Provide a code review." --full-auto &> /dev/null
+cat review.txt
 ```
 
 适用场景：
@@ -63,7 +73,7 @@ codex review --base origin/main
 
 ## 审查输出
 
-Codex review 通常会输出：
+Codex 的 review 通常会输出：
 
 - **代码质量**：可读性、命名规范、代码结构
 - **潜在 bug**：逻辑错误、边界情况、空值处理
@@ -80,15 +90,18 @@ Codex review 通常会输出：
 git branch
 
 # 2. 审查与 main 的差异
-codex review --base main
+codex exec -o review.txt "Review all changes between the current branch and main. Run git diff main...HEAD to see the diff. Provide a code review." --full-auto &> /dev/null
+cat review.txt
 
 # 3. 如果有未提交的改动，也一并审查
-codex review --uncommitted
+codex exec -o review.txt "Review the uncommitted changes in this repository. Run git diff and git diff --cached to see all changes. Provide a code review." --full-auto &> /dev/null
+cat review.txt
 ```
 
 ### 提交后快速检查
 
 ```bash
 git commit -m "feat: add login"
-codex review --commit HEAD
+codex exec -o review.txt "Review commit HEAD. Run git show HEAD to see the changes. Provide a code review." --full-auto &> /dev/null
+cat review.txt
 ```
