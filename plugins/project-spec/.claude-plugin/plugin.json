@@ -1,6 +1,6 @@
 {
   "name": "project-spec",
-  "version": "1.7.8",
+  "version": "1.7.9",
   "description": "项目规范管理插件：初始化项目文档结构和创建详细实施计划",
   "author": {
     "name": "mifan"
