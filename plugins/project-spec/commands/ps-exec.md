@@ -369,9 +369,10 @@ which codex 2>/dev/null && echo "codex available"
 ```bash
 mkdir -p tmp
 REVIEW="tmp/codex-review-$RANDOM.txt"
-codex exec -o "$REVIEW" "[PROMPT]" --full-auto &> /dev/null
-cat "$REVIEW"
+codex exec -o "$REVIEW" "[PROMPT]" --full-auto &> /dev/null && echo "codex review 完成" || echo "codex review 失败"
 ```
+
+执行完成后，使用 Read 工具读取 `$REVIEW` 文件获取 review 结果。
 
 未安装 codex，使用独立 subAgent
 
