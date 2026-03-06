@@ -561,6 +561,8 @@ Claude插件 → PLUGIN_STRUCTURE.md, COMMANDS.md, SKILLS.md, HOOKS.md, TESTING.
    - **异步**：使用 `findBy*` 或 `waitFor`，避免人为等待
    - **mock 策略**：
      - 仅 mock 不可控/慢速边界（网络请求、外部服务、时间、随机数）
+     - 集成测试不 mock 应用内部模块，应使用真实的内部模块和依赖，确保模块间的交互被真正验证
+     - 单元测试可按需 mock 内部依赖，以隔离被测单元
      - 组件内依赖的外部模块用 `jest.mock`
      - 使用 `jest.spyOn` 观察函数调用
    - **副作用清理（强制执行）**：
