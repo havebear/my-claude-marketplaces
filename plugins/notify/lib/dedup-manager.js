@@ -7,8 +7,6 @@ class DedupManager {
     this.stateDir = path.join(os.tmpdir(), 'notify');
     this.stateFile = path.join(this.stateDir, 'dedup-state.json');
     this.cooldownSeconds = cooldownSeconds;
-
-    this.ensureStateDir();
   }
 
   ensureStateDir() {
@@ -31,6 +29,7 @@ class DedupManager {
 
   saveState(state) {
     try {
+      this.ensureStateDir();
       fs.writeFileSync(this.stateFile, JSON.stringify(state, null, 2));
     } catch (error) {
       console.error('Failed to save dedup state:', error.message);

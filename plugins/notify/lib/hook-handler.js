@@ -1,7 +1,5 @@
 const path = require('path');
 const fs = require('fs');
-const checkDependencies = require('./check-dependencies');
-const NotificationSender = require('./notification-sender');
 const DedupManager = require('./dedup-manager');
 
 /**
@@ -18,29 +16,30 @@ class HookHandler {
 
   /**
    * 初始化处理器
-   * - 检查依赖
    * - 加载配置
    * - 初始化组件
    */
   async initialize() {
-    // 检查依赖
-    const depsOk = checkDependencies();
-    if (!depsOk) {
-      console.error('[notify] 依赖缺失，请运行 /notify:init 初始化插件');
-      process.exit(0);
-    }
-
     // 加载配置
     const configPath = path.join(this.pluginRoot, 'config', 'config.json');
-    if (fs.existsSync(configPath)) {
-      const configContent = fs.readFileSync(configPath, 'utf-8');
-      this.config = JSON.parse(configContent);
-    } else {
+    try {
+      this.config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+    } catch {
       this.config = this.getDefaultConfig();
     }
 
-    // 初始化组件
-    this.sender = new NotificationSender(this.config, this.pluginRoot);
+    // 懒加载 NotificationSender，依赖缺失时捕获 MODULE_NOT_FOUND 错误
+    try {
+      const NotificationSender = require('./notification-sender');
+      this.sender = new NotificationSender(this.config, this.pluginRoot);
+    } catch (e) {
+      if (e.code === 'MODULE_NOT_FOUND') {
+        console.error('[notify] 依赖缺失，请运行 /notify:init 初始化插件');
+        process.exit(0);
+      }
+      throw e;
+    }
+
     this.dedup = new DedupManager(this.config.cooldown_seconds);
   }
 
