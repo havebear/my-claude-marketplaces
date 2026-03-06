@@ -42,6 +42,14 @@ class NotificationSender {
     return defaults[notificationType] || null;
   }
 
+  /**
+   * 从工作目录中提取项目名称
+   */
+  getProjectName() {
+    const cwd = process.env.CWD || process.cwd();
+    return path.basename(cwd);
+  }
+
   async send(notificationType, customMessage = null) {
     // 检查通知是否启用
     if (!this.config.enabled) {
@@ -60,8 +68,10 @@ class NotificationSender {
     }
 
     // 发送桌面通知（声音由 node-notifier 处理）
+    const projectName = this.getProjectName();
     const message = customMessage || defaults.message;
-    await this.sendDesktopNotification(defaults.title, message);
+    const title = `${defaults.title} · ${projectName}`;
+    await this.sendDesktopNotification(title, message);
   }
 
   async sendDesktopNotification(title, message) {
