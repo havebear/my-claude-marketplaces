@@ -41,7 +41,7 @@ async function testDedupManager() {
   console.log('✅ 测试 3 通过: 冷却期后允许发送');
 
   // 测试 4: 不同通知类型应该独立（不跳过）
-  const result4 = dedup.shouldSkip('review_complete', sessionId);
+  const result4 = dedup.shouldSkip('execution_error', sessionId);
   assert(result4 === false, '不同通知类型不应该跳过');
   console.log('✅ 测试 4 通过: 不同通知类型独立');
 

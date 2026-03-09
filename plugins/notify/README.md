@@ -5,11 +5,9 @@
 ## 功能
 
 - ✅ **任务完成** - Claude 完成任务时通知
-- 🔍 **审查完成** - 代码审查完成时通知
+- 🔴 **执行出错** - 会话限制或 API 错误时通知
 - ❓ **问题提示** - Claude 需要回答时通知
 - 📋 **计划就绪** - 计划准备好时通知
-- ⏱️ **会话限制** - 会话达到限制时通知
-- 🔴 **API 错误** - API 错误时通知
 
 ## 快速开始
 
@@ -45,11 +43,10 @@ node test-notification.js
 ### 3. 开始使用
 
 插件会自动在以下事件触发通知：
-- Claude 完成任务
+- Claude 完成任务（工具调用 >= 2 次）
 - Claude 提出问题
 - 计划制定完成
-- 代码审查完成
-- 会话限制或 API 错误
+- 会话限制或 API 错误（执行出错）
 
 ## 配置
 
@@ -77,17 +74,15 @@ node test-notification.js
 
 ```json
 {
-  "disabled_types": ["review_complete", "session_limit"]
+  "disabled_types": ["execution_error"]
 }
 ```
 
 可用的通知类型：
 - `task_complete`
-- `review_complete`
+- `execution_error`
 - `question`
 - `plan_ready`
-- `session_limit`
-- `api_error`
 
 ## 资源文件
 

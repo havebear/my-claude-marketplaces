@@ -1,6 +1,6 @@
 {
   "name": "my-claude-marketplaces",
-  "version": "3.7.7",
+  "version": "3.8.0",
   "description": "Claude Code 插件集合，提供项目规范管理、AI Agent 设计模式知识库、文件保护、Codex 集成和智能通知功能",
   "owner": {
     "name": "mifan"
@@ -19,7 +19,7 @@
     {
       "name": "notify",
       "source": "./plugins/notify",
-      "description": "智能通知系统：在关键事件发生时发送桌面通知，支持任务完成、代码审查、问题提示等 6 种通知类型"
+      "description": "智能通知系统：在关键事件发生时发送桌面通知，支持任务完成、执行出错、问题提示等 5 种通知类型"
     },
     {
       "name": "codex",

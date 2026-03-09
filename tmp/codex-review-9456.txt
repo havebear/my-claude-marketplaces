@@ -1,0 +1,62 @@
+**总体评估**
+
+有问题需修改。
+
+**代码质量问题**
+
+1. `init` 命令仍然暴露已删除的通知类型，且没有提供新的 `execution_error`，这不是单纯文档问题，而是会直接导致初始化配置生成无效的 `disabled_types`，用户也无法通过 `/init` 禁用新的错误通知。
+[plugins/notify/commands/init.md:46](F:/code/ta-claude-plugins-20260309-1200-simplify-state-analyzer/plugins/notify/commands/init.md#L46)
+[plugins/notify/commands/init.md:77](F:/code/ta-claude-plugins-20260309-1200-simplify-state-analyzer/plugins/notify/commands/init.md#L77)
+
+2. 集成测试没有覆盖这次改动的关键行为，甚至 `task_complete` 场景仍然用“单次工具调用”构造数据；按新规则这应当是不通知的场景，但测试只断言退出码为 `0`，因此即使通知完全没发出去也会通过。这意味着当前测试无法证明阈值逻辑真的接入了 `handle-stop.js`。
+[plugins/notify/hooks/scripts/tests/test-handle-stop.js:97](F:/code/ta-claude-plugins-20260309-1200-simplify-state-analyzer/plugins/notify/hooks/scripts/tests/test-handle-stop.js#L97)
+[plugins/notify/hooks/scripts/tests/test-handle-stop.js:139](F:/code/ta-claude-plugins-20260309-1200-simplify-state-analyzer/plugins/notify/hooks/scripts/tests/test-handle-stop.js#L139)
+[plugins/notify/hooks/scripts/tests/test-handle-stop.js:145](F:/code/ta-claude-plugins-20260309-1200-simplify-state-analyzer/plugins/notify/hooks/scripts/tests/test-handle-stop.js#L145)
+
+**计划完成情况**
+
+已实现：
+- `StateAnalyzer` 已按计划合并状态为 `task_complete` / `execution_error` / `null`。
+[plugins/notify/lib/state-analyzer.js:96](F:/code/ta-claude-plugins-20260309-1200-simplify-state-analyzer/plugins/notify/lib/state-analyzer.js#L96)
+- `NotificationSender` 已移除旧状态映射并新增 `execution_error`。
+[plugins/notify/lib/notification-sender.js:14](F:/code/ta-claude-plugins-20260309-1200-simplify-state-analyzer/plugins/notify/lib/notification-sender.js#L14)
+- `test-state-analyzer.js` 已同步更新主要断言，并补了 `< 2` 与 `>= 2` 的边界用例。
+[plugins/notify/hooks/scripts/tests/test-state-analyzer.js:70](F:/code/ta-claude-plugins-20260309-1200-simplify-state-analyzer/plugins/notify/hooks/scripts/tests/test-state-analyzer.js#L70)
+
+遗漏或偏差：
+- 计划第 5 步写的是更新 `plugins/notify/plugin.json`，但当前仓库没有这个文件；实际改的是 `plugins/notify/package.json`。执行记录把这一步记为“已完成”，与仓库实际结构不一致。
+[plugins/notify/package.json:1](F:/code/ta-claude-plugins-20260309-1200-simplify-state-analyzer/plugins/notify/package.json#L1)
+- 配套文档和初始化指令没有同步到新状态模型，闭环不完整。
+
+**验证状态**
+
+未达到“全部通过”：
+- 仓库只提供了 `test` 脚本，没有 `lint` / `typecheck` 入口。
+[plugins/notify/package.json:5](F:/code/ta-claude-plugins-20260309-1200-simplify-state-analyzer/plugins/notify/package.json#L5)
+- 我实际运行了 `node plugins/notify/hooks/scripts/tests/run-tests.js`：`test-state-analyzer.js`、`test-dedup-manager.js` 通过，但 `test-handle-stop.js` 9/9 失败，错误为 `spawn EPERM`。所以当前不能给出“所有测试通过”的结论。
+
+**文档同步状态**
+
+缺失。
+- README 仍然把 `review_complete`、`session_limit`、`api_error` 写成有效通知类型，示例配置也还是旧值。
+[plugins/notify/README.md:7](F:/code/ta-claude-plugins-20260309-1200-simplify-state-analyzer/plugins/notify/README.md#L7)
+[plugins/notify/README.md:76](F:/code/ta-claude-plugins-20260309-1200-simplify-state-analyzer/plugins/notify/README.md#L76)
+[plugins/notify/README.md:84](F:/code/ta-claude-plugins-20260309-1200-simplify-state-analyzer/plugins/notify/README.md#L84)
+- `init` 命令说明仍展示旧通知类型。
+[plugins/notify/commands/init.md:50](F:/code/ta-claude-plugins-20260309-1200-simplify-state-analyzer/plugins/notify/commands/init.md#L50)
+[plugins/notify/commands/init.md:82](F:/code/ta-claude-plugins-20260309-1200-simplify-state-analyzer/plugins/notify/commands/init.md#L82)
+- 版本已升到 `0.5.0`，但 `CHANGELOG.md` 没有对应条目。
+[plugins/notify/package.json:3](F:/code/ta-claude-plugins-20260309-1200-simplify-state-analyzer/plugins/notify/package.json#L3)
+[plugins/notify/CHANGELOG.md:3](F:/code/ta-claude-plugins-20260309-1200-simplify-state-analyzer/plugins/notify/CHANGELOG.md#L3)
+
+**冗余代码**
+
+有残留测试文案。
+- `test-dedup-manager.js` 仍使用已删除的 `review_complete` 作为通知类型示例。虽然不影响功能，但属于过期残留，降低测试可读性。
+[plugins/notify/hooks/scripts/tests/test-dedup-manager.js:44](F:/code/ta-claude-plugins-20260309-1200-simplify-state-analyzer/plugins/notify/hooks/scripts/tests/test-dedup-manager.js#L44)
+
+**改进建议**
+
+- 先同步 `plugins/notify/README.md`、`plugins/notify/commands/init.md`、`plugins/notify/CHANGELOG.md`，把所有旧状态名替换为新的状态集合。
+- 修正 `test-handle-stop.js`，至少让“任务完成”场景使用 `>= 2` 次工具调用，并断言实际产生的通知类型，而不是只看退出码。
+- 澄清版本文件约定：如果插件实际只以 `package.json` 为版本源，就更新计划模板和执行记录，避免继续引用不存在的 `plugin.json`。

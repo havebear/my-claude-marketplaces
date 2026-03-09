@@ -14,12 +14,10 @@ class NotificationSender {
   getNotificationDefaults(notificationType) {
     const defaults = {
       task_complete: '✅ 任务完成',
-      review_complete: '🔍 审查完成',
+      execution_error: '🔴 执行出错',
       question: '❓️ 发起提问',
       permission: '❗️ 权限请求',
-      plan_ready: '📋 计划就绪',
-      session_limit: '⏱️ 会话限制',
-      api_error: '🔴 API 错误'
+      plan_ready: '📋 计划就绪'
     };
 
     return defaults[notificationType] || null;
