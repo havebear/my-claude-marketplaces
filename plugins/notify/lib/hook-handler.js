@@ -35,7 +35,7 @@ class HookHandler {
     } catch (e) {
       if (e.code === 'MODULE_NOT_FOUND') {
         console.error('[notify] 依赖缺失，请运行 /notify:init 初始化插件');
-        process.exit(0);
+        process.exit(1);
       }
       throw e;
     }
