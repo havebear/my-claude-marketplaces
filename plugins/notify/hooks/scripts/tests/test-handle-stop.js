@@ -138,7 +138,7 @@ async function testStopHookActive() {
 
 async function testTaskComplete() {
   const transcriptPath = createTranscript('task-complete.jsonl', [
-    { type: 'assistant', message: { role: 'assistant', content: [{ type: 'tool_use', id: 't1', name: 'Write', input: {} }] } },
+    { type: 'assistant', message: { role: 'assistant', content: [{ type: 'tool_use', id: 't1', name: 'Read', input: {} }, { type: 'tool_use', id: 't2', name: 'Write', input: {} }] } },
     { type: 'assistant', message: { role: 'assistant', content: [{ type: 'text', text: 'File written successfully.' }] } }
   ]);
   const hookData = buildHookData({ transcript_path: transcriptPath });
@@ -205,9 +205,9 @@ async function main() {
     await runTest('transcript 文件不存在时正常退出', testNonExistentTranscript);
     await runTest('stop_hook_active 为 true 时正常退出', testStopHookActive);
     await runTest('任务完成场景正常处理', testTaskComplete);
-    await runTest('代码审查场景正常处理', testReviewComplete);
-    await runTest('Session Limit 场景正常处理', testSessionLimit);
-    await runTest('API Error 场景正常处理', testApiError);
+    await runTest('读取工具场景正常处理（归为任务完成）', testReviewComplete);
+    await runTest('Session Limit 场景正常处理（归为执行出错）', testSessionLimit);
+    await runTest('API Error 场景正常处理（归为执行出错）', testApiError);
     await runTest('简单对话不触发通知', testSimpleConversationNoNotify);
     await runTest('空 stdin 时正常退出', testEmptyStdin);
   } finally {

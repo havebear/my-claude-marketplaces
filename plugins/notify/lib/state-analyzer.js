@@ -3,8 +3,7 @@ const readline = require('readline');
 
 class StateAnalyzer {
   constructor() {
-    this.activeTools = ['Write', 'Edit', 'Bash', 'NotebookEdit'];
-    this.readTools = ['Read', 'Grep', 'Glob'];
+    this.tools = ['Write', 'Edit', 'Bash', 'NotebookEdit', 'Read', 'Grep', 'Glob'];
   }
 
   async analyzeConversationFile(filePath) {
@@ -95,24 +94,17 @@ class StateAnalyzer {
   }
 
   analyzeMessages(messages) {
-    // 1. 检查 Session Limit
-    if (this.detectSessionLimit(messages)) {
-      return 'session_limit';
+    // 1. 检查异常状态
+    if (this.detectSessionLimit(messages) || this.detectAPIError(messages)) {
+      return 'execution_error';
     }
 
-    // 2. 检查 API Error
-    if (this.detectAPIError(messages)) {
-      return 'api_error';
-    }
-
-    // 3. 分析工具使用模式
+    // 2. 分析工具使用
     const toolUsage = this.analyzeToolUsage(messages);
 
-    // 4. 判断任务类型
-    if (toolUsage.hasActiveTools) {
+    // 3. 判断任务完成（工具调用次数 >= 2）
+    if (toolUsage.hasTools && toolUsage.toolCount >= 2) {
       return 'task_complete';
-    } else if (toolUsage.hasReadTools && toolUsage.longResponse) {
-      return 'review_complete';
     }
 
     return null;
@@ -142,34 +134,25 @@ class StateAnalyzer {
   }
 
   analyzeToolUsage(messages) {
-    let hasActiveTools = false;
-    let hasReadTools = false;
-    let responseLength = 0;
+    let hasTools = false;
+    let toolCount = 0;
 
     const recentMessages = messages.slice(-15);
 
     for (const msg of recentMessages) {
       if (msg.tool_uses && Array.isArray(msg.tool_uses)) {
         for (const tool of msg.tool_uses) {
-          if (this.activeTools.includes(tool.name)) {
-            hasActiveTools = true;
-          }
-          if (this.readTools.includes(tool.name)) {
-            hasReadTools = true;
+          if (this.tools.includes(tool.name)) {
+            hasTools = true;
+            toolCount++;
           }
         }
-      }
-
-      if (msg.role === 'assistant' && msg.content) {
-        const content = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content);
-        responseLength += content.length;
       }
     }
 
     return {
-      hasActiveTools,
-      hasReadTools,
-      longResponse: responseLength > 200
+      hasTools,
+      toolCount
     };
   }
 }

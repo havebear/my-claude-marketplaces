@@ -1,6 +1,6 @@
 {
   "name": "notify",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "Smart notifications for Claude Code",
   "scripts": {
     "test": "node hooks/scripts/tests/run-tests.js"

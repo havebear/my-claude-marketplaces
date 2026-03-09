@@ -47,7 +47,7 @@ npm install
 
 询问：是否需要禁用某些通知类型？
 - 全部启用（推荐）
-- 自定义禁用（如选择此项，进一步列出所有类型供用户多选：task_complete / review_complete / question / plan_ready / session_limit / api_error）
+- 自定义禁用（如选择此项，进一步列出所有类型供用户多选：task_complete / execution_error / question / plan_ready）
 
 根据用户选择，更新 `${CLAUDE_PLUGIN_ROOT}/config/config.json`：
 
@@ -81,11 +81,9 @@ node ${CLAUDE_PLUGIN_ROOT}/lib/check-dependencies.js
 
 🔔 支持的通知类型：
   ✅ 任务完成 (Task Complete)
-  🔍 审查完成 (Review Complete)
+  🔴 执行出错 (Execution Error)
   ❓ Claude 有问题 (Question)
   📋 计划就绪 (Plan Ready)
-  ⏱️ 会话限制 (Session Limit Reached)
-  🔴 API 错误 (API Error)
 
 💡 提示：
   - 通知会在关键事件发生时自动触发

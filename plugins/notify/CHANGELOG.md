@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.5.0] - 2026-03-09
+
+### Changed
+
+- 简化 StateAnalyzer 状态分类：从 4 种有效状态合并为 2 种
+  - `task_complete` + `review_complete` → `task_complete`
+  - `session_limit` + `api_error` → `execution_error`
+- 新增工具调用次数阈值：调用次数 < 2 时不触发通知
+- 移除 `readTools` 工具分类，所有工具统一为 `tools`
+
+### Removed
+
+- 移除 `review_complete`、`session_limit`、`api_error` 通知类型
+
 ## [0.2.3] - 2026-03-04
 
 ### Fixed
