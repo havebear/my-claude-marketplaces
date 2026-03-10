@@ -3,37 +3,68 @@ const readline = require('readline');
 
 class StateAnalyzer {
   constructor() {
-    this.tools = ['Write', 'Edit', 'Bash', 'NotebookEdit', 'Read', 'Grep', 'Glob'];
+    // 构造函数现在为空，保留以便将来扩展
   }
 
   async analyzeConversationFile(filePath) {
-    const messages = await this.parseJSONL(filePath);
-    return this.analyzeMessages(messages);
+    const { messages, rawEntries } = await this.parseJSONL(filePath);
+    return this.analyzeMessages(messages, rawEntries);
   }
 
-  async parseJSONL(filePath) {
+  async parseJSONL(filePath, maxMessages = 20) {
+    const rawEntries = [];
     const messages = [];
-    const fileStream = fs.createReadStream(filePath);
-    const rl = readline.createInterface({
-      input: fileStream,
-      crlfDelay: Infinity
-    });
 
-    for await (const line of rl) {
-      if (line.trim()) {
+    // 读取文件内容
+    const content = fs.readFileSync(filePath, 'utf8');
+    const lines = content.split('\n');
+
+    // 从后往前解析
+    let buffer = '';
+    let braceCount = 0;
+
+    for (let i = lines.length - 1; i >= 0; i--) {
+      const line = lines[i];
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+
+      // 从后往前累积（需要反转顺序）
+      buffer = line + '\n' + buffer;
+
+      // 反向计算大括号（从后往前，{ 减少，} 增加）
+      for (const char of trimmed) {
+        if (char === '{') braceCount--;
+        if (char === '}') braceCount++;
+      }
+
+      // 当大括号平衡时（braceCount 回到 0），说明找到了一个完整的 JSON 对象
+      if (braceCount === 0 && buffer.trim()) {
         try {
-          const entry = JSON.parse(line);
-          const msg = this.normalizeEntry(entry);
-          if (msg) {
-            messages.push(msg);
+          const entry = JSON.parse(buffer);
+
+          // 只保存 assistant 类型的消息
+          if (entry.type === 'assistant') {
+            rawEntries.unshift(entry); // 添加到开头，保持时间顺序
+
+            const msg = this.normalizeEntry(entry);
+            if (msg) {
+              messages.unshift(msg);
+            }
+
+            // 找到足够的消息后停止
+            if (rawEntries.length >= maxMessages) {
+              break;
+            }
           }
+
+          buffer = '';
         } catch (error) {
-          // 忽略解析错误的行
+          // 解析失败，继续累积
         }
       }
     }
 
-    return messages;
+    return { messages, rawEntries };
   }
 
   /**
@@ -93,16 +124,48 @@ class StateAnalyzer {
     return result;
   }
 
-  analyzeMessages(messages) {
-    // 1. 检查异常状态
-    if (this.detectSessionLimit(messages) || this.detectAPIError(messages)) {
+  /**
+   * 从原始条目检测 API 错误消息
+   *
+   * @param {Object} entry - 原始 transcript 条目
+   * @returns {boolean} 是否为 API 错误消息
+   */
+  detectAPIErrorFromEntry(entry) {
+    if (!entry || entry.type !== 'assistant') {
+      return false;
+    }
+
+    // 方法 A: 检查 isApiErrorMessage 标志（最可靠）
+    if (entry.isApiErrorMessage === true) {
+      return true;
+    }
+
+    // 方法 B: 检查是否为合成消息
+    if (entry.message && entry.message.model === '<synthetic>') {
+      return true;
+    }
+
+    // 方法 C: 检查 error 字段
+    if (entry.error && entry.error !== '') {
+      return true;
+    }
+
+    return false;
+  }
+
+  analyzeMessages(messages, rawEntries = []) {
+    // 1. 获取最后一个 assistant 消息（已经按时间排序）
+    const lastAssistantEntry = rawEntries[rawEntries.length - 1];
+
+    // 2. 检查是否为 API 错误消息
+    if (lastAssistantEntry && this.detectAPIErrorFromEntry(lastAssistantEntry)) {
       return 'execution_error';
     }
 
-    // 2. 分析工具使用
+    // 3. 分析工具使用（所有工具）
     const toolUsage = this.analyzeToolUsage(messages);
 
-    // 3. 判断任务完成（工具调用次数 >= 1）
+    // 4. 判断任务完成
     if (toolUsage.hasTools && toolUsage.toolCount >= 1) {
       return 'task_complete';
     }
@@ -110,43 +173,15 @@ class StateAnalyzer {
     return null;
   }
 
-  detectSessionLimit(messages) {
-    const recentMessages = messages.slice(-3);
-    return recentMessages.some(msg => {
-      if (msg.content) {
-        const content = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content);
-        return content.includes('Session limit reached') || content.includes('会话限制');
-      }
-      return false;
-    });
-  }
-
-  detectAPIError(messages) {
-    const recentMessages = messages.slice(-3);
-    return recentMessages.some(msg => {
-      if (msg.content) {
-        const content = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content);
-        return (content.includes('API Error: 401') || content.includes('API Error')) &&
-               (content.includes('Please run /login') || content.includes('登录'));
-      }
-      return false;
-    });
-  }
-
   analyzeToolUsage(messages) {
     let hasTools = false;
     let toolCount = 0;
 
-    const recentMessages = messages.slice(-15);
-
-    for (const msg of recentMessages) {
+    // messages 已经是最近的 20 条，不需要 slice
+    for (const msg of messages) {
       if (msg.tool_uses && Array.isArray(msg.tool_uses)) {
-        for (const tool of msg.tool_uses) {
-          if (this.tools.includes(tool.name)) {
-            hasTools = true;
-            toolCount++;
-          }
-        }
+        hasTools = true;
+        toolCount += msg.tool_uses.length;
       }
     }
 
