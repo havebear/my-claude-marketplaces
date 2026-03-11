@@ -33,7 +33,10 @@ tools: Read, Write, Edit, Bash, Glob, Grep, mcp__exa__web_search_exa, mcp__exa__
 
 ### 3. 验证
 
-运行项目的对应 lint 和 typecheck 命令来验证更改。
+- 仅运行与本次变更直接相关的验证命令和测试用例，不要求全量运行
+- 优先执行受影响范围内的 lint、typecheck、单元测试或集成测试
+- 如果某项验证与本次变更无关，在结果中明确标注 `N/A` 和原因
+- 除非计划文件、任务文件或 prompt 明确要求，否则不要执行全量测试
 
 ## 输出要求
 
@@ -49,9 +52,9 @@ tools: Read, Write, Edit, Bash, Glob, Grep, mcp__exa__web_search_exa, mcp__exa__
 
 ## 验证结果
 
-- Lint: ✅ 通过 / ❌ [错误信息]
-- 类型检查: ✅ 通过 / ❌ [错误信息]
-- 测试: ✅ 通过 / ❌ [错误信息]
+- Lint: ✅ [执行的命令/范围] / ❌ [错误信息] / N/A [原因]
+- 类型检查: ✅ [执行的命令/范围] / ❌ [错误信息] / N/A [原因]
+- 测试: ✅ [执行的用例/范围] / ❌ [错误信息] / N/A [原因]
 ```
 
 ## 禁止操作
@@ -63,4 +66,5 @@ tools: Read, Write, Edit, Bash, Glob, Grep, mcp__exa__web_search_exa, mcp__exa__
 - 每个任务的成果必须是完备的（代码不报错、系统可执行）
 - 如果遇到错误，优先尝试自动修复
 - 不要修改任务范围之外的文件
+- 验证时只覆盖与改动直接相关的范围，并在报告中说明实际验证边界
 - 如果 prompt 中包含 worktree 路径，所有文件操作必须在该路径下进行
