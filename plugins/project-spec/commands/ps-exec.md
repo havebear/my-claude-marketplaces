@@ -444,15 +444,62 @@ Review 提示词(PROMPT)示例：
     - 改进建议（如有）
 ```
 
-#### 6.3 展示 Review 结果并询问用户
+#### 6.3 分析 Review 结果并自动修复
 
-主 Agent 展示 review 报告后，使用 AskUserQuestion 询问下一步：
+主 Agent 展示 review 报告后，分析是否有需要修复的问题：
+
+**1. 提取问题列表**
+
+从 review 报告中提取以下类型的问题：
+- 代码质量问题（附文件和行号）
+- 遗漏的功能点
+- 文档同步缺失
+- 冗余代码（未清理的残留）
+- 验证失败（lint/类型检查/测试）
+
+**2. 判断是否需要修复**
+
+- 如果 review 报告总体评估为"通过"且无明显问题 → 跳过修复，直接进入 6.4
+- 如果 review 的意见并不正确 → 跳过修复
+- 如果有任何需要修复的问题 → 启动自动修复流程
+
+**3. 启动自动修复**
+
+使用 Agent tool 启动 `project-spec:implement` subAgent 进行修复：
+
+```
+Agent(
+  subagent_type: "project-spec:implement",
+  description: "自动修复 Review 发现的问题",
+  prompt: "
+    计划文件：[plan.md 绝对路径]
+    任务文件：[task.md 绝对路径]
+    worktree 路径：[worktree 绝对路径，如有]
+    当前分支：[分支名，如有]
+
+    Review 发现以下问题需要修复：
+    [问题列表，包含文件路径、行号、问题描述]
+
+    请逐一修复这些问题，修复完成后运行验证命令确认。
+  ",
+  run_in_background: false
+)
+```
+
+**4. 验证修复结果**
+
+修复完成后，重新运行验证命令（与 5.1 相同）：
+- 执行 lint/类型检查/测试/构建
+- 生成验证报告
+
+#### 6.4 询问用户下一步操作
+
+修复完成（或无需修复）后，使用 AskUserQuestion 询问下一步：
 - A. 合并到基础分支
 - B. 创建 Pull Request
-- C. 先修复问题（标记任务为待修复，保留 worktree）
-- D. 暂不处理（保留 worktree，更新 task.md status = 已暂停）
+- C. 暂不处理（保留 worktree，更新 task.md status = 已暂停）
 
-#### 6.4 执行用户选择
+#### 6.5 执行用户选择
 
 **选项 A：合并到基础分支**
 ```bash
@@ -479,10 +526,7 @@ EOF
   --head "${BRANCH_NAME}"
 ```
 
-**选项 C：先修复问题**
-提示用户：修复完成后再次运行 /ps-exec 续执，或手动修复后运行 /ps-exec 重新触发 review
-
-**选项 D：暂不处理**
+**选项 C：暂不处理**
 更新 task.md 状态为"已暂停"，告知用户 worktree 路径和分支名
 
 ---
