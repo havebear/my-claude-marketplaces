@@ -47,7 +47,7 @@ argument-hint: 可选 计划文件路径
 4. 如果没有未完成 task.md：
    - 如果用户传入了计划路径，直接使用
    - 否则搜索 `docs/spec/*.md`，并排除 `*.task.md`
-   - 如果找到多个计划文件，使用 `AskUserQuestion` 让用户选择
+   - 如果找到多个未开始的计划文件，使用 `AskUserQuestion` 让用户选择
    - 如果一个也没有，提示用户先运行 `/ps-plan`
 
 ### 2. 确定执行目录
