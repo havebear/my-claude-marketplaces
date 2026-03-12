@@ -26,7 +26,7 @@ argument-hint: 可选 计划文件路径
 - **分离 task.md 文件** - 执行记录独立存储，不修改原始计划文件
 - **优先续执未完成任务** - 自动检测并优先继续最近未完成的任务
 - **TODO 列表驱动** - task.md 是带执行时序的 TODO 列表，可直接续执
-- **主 Agent 纯协调** - 主 Agent 不直接执行任务，只负责协调 subAgent 和更新状态
+- **主 Agent 负责编排与收口** - 主 Agent 负责分发 subAgent、维护 task.md、执行全局验证、发起 review 和处理收尾动作
 - **subAgent 并行加速** - 所有任务都启动 subAgent 后台执行,最大化并行效果
 - **智能执行顺序** - 优化任务顺序，让耗时独立任务提前执行，最大化并行效果
 - **分层验证** - subAgent 局部验证 + ps-exec 全局最终验证
@@ -90,7 +90,8 @@ base_branch: main
    - 检查失败（非 git 仓库或 git 不可用）→ 使用 AskUserQuestion 询问用户：
      - 继续执行（跳过 worktree，直接在当前目录修改文件）
      - 中止执行
-   - 如果用户选择继续：跳过 2.5.2 ~ 2.5.4，task.md 中 worktree 相关字段留空
+   - 如果用户选择继续：跳过 2.5.2 ~ 2.5.4，task.md 中 branch/worktree/base_branch 相关字段留空，并视为**原地执行模式**
+   - 原地执行模式下允许完成编码、局部验证、全局验证和 review，但**不执行自动 merge 或自动创建 PR**
 
 3. **记录当前分支**（作为 base_branch）：
    ```bash
@@ -152,8 +153,6 @@ git worktree list
 
 - 每条命令的默认超时为 600000ms（10 分钟）
 - 任一命令失败时，使用 AskUserQuestion 询问用户：继续执行 / 中止执行
-
-- 命令失败 → 使用 AskUserQuestion 询问用户：继续执行 / 中止执行
 
 #### 2.5.4 暂存信息供第三步写入
 
@@ -238,6 +237,22 @@ base_branch: [基础分支名，如 main；无 worktree 则留空]
 | 开始时间 | [当前时间] |
 | 当前耗时 | 0min |
 | subAgent 次数 | 0 |
+
+---
+
+## ✅ 全局验证记录
+
+- 状态：待执行
+- 执行目录：-
+- 执行命令：-
+- 结果摘要：-
+
+## 🧾 独立 Review 记录
+
+- 状态：待执行
+- Review 方式：-
+- 结果摘要：-
+- 后续动作：-
 ```
 
 **状态标记：**
@@ -268,6 +283,7 @@ base_branch: [基础分支名，如 main；无 worktree 则留空]
 - 步骤内所有任务的描述和文件路径
 - worktree 路径（如有）
 - 当前分支名（如有）
+- 明确要求 subAgent 只做与当前步骤改动直接相关的局部验证，并在结果中写清验证范围
 
 **关键：同一批次的所有 subAgent 必须在单个响应中同时启动（在同一条消息中发出多个 Agent tool 调用）。**
 
@@ -291,15 +307,18 @@ Agent(
 启动后，Agent tool 会返回 `task_id`，用于后续状态检查。
 
 - 更新 task.md：该步骤所有任务状态 → 🔄
+- 将当前批次所有 `task_id` 记录到列表中，后续统一等待和汇总
 
 #### 4.3 等待 subAgent 完成
 
-后台 subAgent 完成时会**自动通知**主 Agent，无需轮询或主动检查。
+后台 subAgent 完成时会**自动通知**主 Agent，无需轮询。
 
-使用 `TaskOutput` 阻塞等待所有 subAgent 完成：
+对当前批次记录的每个 `task_id` 依次调用 `TaskOutput`，直到全部返回结果：
 ```
 TaskOutput(task_id: "<subAgent返回的task_id>", block: true, timeout: 600000)
 ```
+
+主 Agent 必须等待**当前批次全部 task_id** 的结果，再进入 4.4 汇总判断。
 
 #### 4.4 检查 subAgent 完成质量
 
@@ -318,12 +337,14 @@ TaskOutput(task_id: "<subAgent返回的task_id>", block: true, timeout: 600000)
    - 如果有任务是 ❌，更新为 ❌
 
 4. **处理验证失败**：
-   - 如果验证失败，使用 AskUserQuestion 询问用户是否继续执行后续步骤
-   - 用户选择继续 → 继续执行下一批步骤
-   - 用户选择中止 → 更新 task.md 状态为"已暂停"
+   - 只要某个步骤执行失败或局部验证失败，就**不得解锁依赖该步骤的后续步骤**
+   - 失败步骤所属任务标记为 ❌，并把失败原因写入 task.md
+   - 使用 AskUserQuestion 询问用户：重试失败步骤 / 暂停执行
+   - 用户选择重试 → 仅重新启动失败步骤对应的 subAgent，成功后再重新检查依赖图
+   - 用户选择暂停 → 更新 task.md 状态为"已暂停"，本次执行结束
 
 5. **解锁下一批步骤**：
-   - 所有 subAgent 质量检查通过后，重新检查依赖图
+   - 只有当前批次所有步骤都通过质量检查后，才重新检查依赖图
    - 找出下一批可执行步骤
 
 #### 4.5 循环执行
@@ -338,7 +359,8 @@ TaskOutput(task_id: "<subAgent返回的task_id>", block: true, timeout: 600000)
 
 1. **确定验证命令**：
    - 如果 `worktree.yaml` 存在且有 `verify` 字段 → 执行 `verify` 列表中的所有命令
-   - 否则 → AI 自动推断：检测 package.json scripts 中的 lint/typecheck/test/build 命令并执行
+   - 否则 → AI 自动推断项目的标准验证命令，至少检查常见入口：`package.json`、`pyproject.toml`、`Cargo.toml`、`go.mod`、`Makefile` 等
+   - 如果无法推断出可靠的全局验证命令，必须明确告知用户并询问是提供命令还是跳过全局验证
    - 这里执行的是**项目级全局验证**，不是 subAgent 的局部验证
 
 2. **运行验证**：
@@ -366,19 +388,20 @@ TaskOutput(task_id: "<subAgent返回的task_id>", block: true, timeout: 600000)
    - 可以启动新的 `project-spec:implement` subAgent 定向修复问题
    - 修复后必须重新执行 5.1 的全局验证，直到通过或用户选择暂停
 
-#### 5.2 更新 task.md 最终状态
+#### 5.2 写入 task.md 的全局验证记录
 
-```markdown
----
-source: [计划文件路径]
-status: 已完成
-created: [创建时间]
-updated: [当前时间]
-branch: [分支名，如 feature/20260311-1030-user-auth；无 worktree 则保留为空]
-worktree: [worktree 绝对路径；无 worktree 则保留为空]
-base_branch: [基础分支名，如 main；无 worktree 则保留为空]
----
-```
+全局验证结束后，主 Agent 必须立即更新 task.md 中的 `## ✅ 全局验证记录` 章节，至少写入：
+
+- 状态：通过 / 失败 / 已跳过
+- 执行目录：`<WORKTREE_PATH>` 或当前项目目录
+- 执行命令：按实际执行顺序逐条列出
+- 结果摘要：记录每条命令的通过/失败情况和关键错误信息
+- 手动验证项：如果存在人工检查项，也要记录结果或待办说明
+
+如果全局验证失败：
+- 先把失败信息写入 `## ✅ 全局验证记录`
+- 再进入修复流程
+- 此时 **不要** 把 task.md 标记为 `已完成`
 
 
 ---
@@ -396,25 +419,34 @@ codex --version
 
 #### 6.2 启动独立 Review
 
-如过已经安装 codex，那么**必须使用 codex** 进行代码 review
+如果已经安装 codex，优先使用 codex 进行独立 review。
 
 执行流程：
-- 在当前仓库下准备一个临时输出文件，例如 `tmp/codex-review.txt`
+- 在**本次执行目录**下准备一个临时输出文件，例如 `tmp/codex-review.txt`
 - 运行 `codex exec -o "<review-file>" "[PROMPT]" --full-auto`
 - 命令成功后，使用 Read 工具读取 `<review-file>` 获取 review 结果
-- 如果命令失败，则降级到独立 subAgent review
+- 如果命令失败，再尝试使用独立 subAgent review
 
-未安装 codex，使用独立 subAgent
+未安装 codex 时：
+- 如果当前环境明确支持**不继承主 Agent 上下文**的独立 review subAgent，则使用该 subAgent
+- 如果环境不支持独立 review subAgent，则使用 AskUserQuestion 询问用户：暂停等待人工 review / 跳过独立 review
 
-启动一个全新的 general-purpose subAgent（不携带主 Agent 上下文）：
+如果使用独立 subAgent，必须确保它**不继承主 Agent 当前上下文**。示例：
 ```
 Agent(
-  subagent_type: "general-purpose",
+  subagent_type: "[环境支持的独立 review Agent 类型]",
   description: "独立Review：计划与实现对比",
   prompt: "[PROMPT]"
 )
 ```
 Agent 执行完成后直接返回 review 结果。
+
+拿到 review 结果后，主 Agent 必须立即更新 task.md 中的 `## 🧾 独立 Review 记录` 章节，至少写入：
+
+- 状态：通过 / 有问题需修复 / 已跳过 / 无法执行
+- Review 方式：`codex` / 独立 review subAgent / 人工 review
+- 结果摘要：review 的核心结论和主要问题列表
+- 后续动作：自动修复 / 人工确认 / 无需处理
 
 Review 提示词(PROMPT)示例：
 ```markdown
@@ -429,7 +461,7 @@ Review 提示词(PROMPT)示例：
     了解实际执行情况（✅/❌ 统计）
 
     **步骤3：查看代码变更**
-    在目录 <worktree绝对路径> 中使用 git 命令查看变更内容：
+    在目录 <本次执行目录绝对路径；有 worktree 时为 worktree，无 worktree 时为当前项目目录> 中使用 git 命令查看变更内容：
     git status
     git diff HEAD
 
@@ -465,7 +497,7 @@ Review 提示词(PROMPT)示例：
 **2. 判断是否需要修复**
 
 - 如果 review 报告总体评估为"通过"且无明显问题 → 跳过修复，直接进入 6.4
-- 如果 review 的意见并不正确 → 跳过修复
+- 如果 review 的意见并不正确，只有在主 Agent 能给出明确的代码或验证证据时才允许跳过修复，并且必须在结果中记录理由；如果无法证明，则暂停并询问用户
 - 如果有任何需要修复的问题 → 启动自动修复流程
 
 **3. 启动自动修复**
@@ -496,31 +528,52 @@ Agent(
 修复完成后，重新运行验证命令（与 5.1 相同）：
 - 执行 lint/类型检查/测试/构建
 - 生成验证报告
+- 并再次更新 task.md 中的 `## ✅ 全局验证记录` 和 `## 🧾 独立 Review 记录`，反映修复后的最新状态
 
 #### 6.4 询问用户下一步操作
 
-修复完成（或无需修复）后，使用 AskUserQuestion 询问下一步：
-- A. 合并到基础分支
-- B. 创建 Pull Request
-- C. 暂不处理（保留 worktree，更新 task.md status = 已暂停）
+修复完成（或无需修复）后，按照执行模式询问下一步：
+
+- **有 worktree / 分支信息时**：使用 AskUserQuestion 提供以下选项
+  - A. 合并到基础分支
+  - B. 创建 Pull Request
+  - C. 暂不处理（保留 worktree，更新 task.md status = 已暂停）
+
+- **原地执行模式时**：使用 AskUserQuestion 提供以下选项
+  - A. 标记本次执行完成，保留当前目录中的改动
+  - B. 暂停处理（更新 task.md status = 已暂停）
 
 #### 6.5 执行用户选择
 
-**选项 A：合并到基础分支**
-执行流程：
-- 先定位原项目根目录（task.md 所在项目，而不是 worktree 目录）
-- 在原项目根目录下切换到 `<BASE_BRANCH>`
-- 在原项目根目录下执行 `git merge --no-ff "<BRANCH_NAME>" -m "feat: merge <BRANCH_NAME>"`
-- 如果发生合并冲突，进入错误处理
+**有 worktree / 分支信息时：**
 
-**选项 B：创建 Pull Request**
-执行流程：
-- 在 `<WORKTREE_PATH>` 下推送分支：`git push -u origin "<BRANCH_NAME>"`
-- 准备 PR 标题和正文内容
-- 调用 `gh pr create --title "<标题>" --body "<正文>" --base "<BASE_BRANCH>" --head "<BRANCH_NAME>"`
+- **选项 A：合并到基础分支**
+  - 先定位原项目根目录（task.md 所在项目，而不是 worktree 目录）
+  - 在原项目根目录下切换到 `<BASE_BRANCH>`
+  - 在原项目根目录下执行 `git merge --no-ff "<BRANCH_NAME>" -m "feat: merge <BRANCH_NAME>"`
+  - 如果 merge 成功，更新 task.md 状态为 `已完成`
+  - 如果发生合并冲突，进入错误处理
 
-**选项 C：暂不处理**
-更新 task.md 状态为"已暂停"，告知用户 worktree 路径和分支名
+- **选项 B：创建 Pull Request**
+  - 在 `<WORKTREE_PATH>` 下推送分支：`git push -u origin "<BRANCH_NAME>"`
+  - 准备 PR 标题和正文内容
+  - 调用 `gh pr create --title "<标题>" --body "<正文>" --base "<BASE_BRANCH>" --head "<BRANCH_NAME>"`
+  - 如果 PR 创建成功，更新 task.md 状态为 `已完成`
+
+- **选项 C：暂不处理**
+  - 更新 task.md 状态为 `已暂停`
+  - 告知用户 worktree 路径和分支名
+
+**原地执行模式时：**
+
+- **选项 A：标记执行完成**
+  - 不执行 merge、push、PR 等 Git 收尾动作
+  - 更新 task.md 状态为 `已完成`
+  - 明确告知用户当前目录存在未收口的本地改动，后续 Git 操作需用户手动处理
+
+- **选项 B：暂停处理**
+  - 更新 task.md 状态为 `已暂停`
+  - 告知用户当前目录和未收口改动仍被保留
 
 ---
 
@@ -662,9 +715,9 @@ git merge --abort
    - 如果为空，说明是无 worktree 降级模式，继续在当前目录执行
 
 8. **Review 独立性要求**：
-   - Review 必须在独立 subAgent 或外部 CLI 中执行
-   - 主 Agent 不直接评判自己的实现质量
-   - Review 结果由独立上下文生成，确保客观性
+    - Review 必须在独立 subAgent 或外部 CLI 中执行
+    - 主 Agent 不直接评判自己的实现质量
+    - Review 结果由独立上下文生成，确保客观性
 
 9. **验证职责边界**：
    - `project-spec:implement` 只负责与当前步骤改动直接相关的局部验证
@@ -682,3 +735,13 @@ git merge --abort
     - 续执时不重新初始化（Worktree 已存在 = 环境已初始化）
     - 如需重新初始化环境，删除 Worktree 后重新运行 /ps-exec
     - 依赖安装使用较长超时（10分钟），大型项目安装耗时较长
+
+12. **状态机要求**：
+    - `已完成` 只能在全局验证通过、独立 review 结束、并且收尾动作成功或用户明确选择“标记执行完成”后写入
+    - 任何步骤失败、全局验证失败未修复、review 无法完成、或用户选择稍后处理，都应保持 `进行中` 或写为 `已暂停`
+    - 不允许在 review 前提前把 task.md 标记为 `已完成`
+
+13. **失败步骤阻断原则**：
+    - 单个步骤失败时，只能重试该步骤或暂停整个任务
+    - 不允许跳过失败步骤去执行依赖它的后续步骤
+    - 只有失败步骤修复并验证通过后，才能重新解锁依赖步骤
