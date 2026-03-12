@@ -32,6 +32,7 @@ argument-hint: 可选 计划文件路径
 6. **task.md 必须实时写回**：步骤状态、全局验证记录、独立 Review 记录都要立即写回；不要批量补写。
 7. **`已完成` 只能最后写**：只有全局验证通过、独立 review 结束、并且收尾动作成功或用户明确选择“标记执行完成”后，才能把 task.md 写成 `已完成`。
 8. **原地执行模式不做自动 Git 收尾**：没有 worktree / branch 信息时，可以执行实现、验证、review，但**不执行自动 merge 或自动创建 PR**。
+9. **后台任务必须全部等待完成**：启动 `run_in_background: true` 的 subAgent 或 Bash 后，必须对每个 `task_id` 调用 `TaskOutput(block: true)` 等待返回，**禁止在所有后台任务完成前结束当前 turn**。
 
 ---
 
@@ -229,7 +230,7 @@ Agent(
 TaskOutput(task_id: "<task_id>", block: true, timeout: 600000)
 ```
 
-**必须等当前批次全部 `task_id` 返回结果后，才能做下一步判断。**
+⚠️ **严格要求：必须对当前批次每个 `task_id` 都调用 `TaskOutput(block: true)`，全部返回后才能继续。禁止在所有 `TaskOutput` 返回前结束当前 turn 或输出任何收尾文字。**
 
 #### 4.3 批次门禁
 
